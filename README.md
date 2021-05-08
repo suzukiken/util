@@ -6,11 +6,7 @@
 * GraphQL Api
 * CodePipeline
 
-[diagram of Api by cfn-dia](https://diagram.figmentresearch.com/util/api)
-[diagram of Table by cfn-dia](https://diagram.figmentresearch.com/util/db)
-[diagram of IAM Policy by cfn-dia](https://diagram.figmentresearch.com/util/permit)
-[diagram of Web UI Distribution by cfn-dia](https://diagram.figmentresearch.com/util/ui-distro)
-[diagram of CodePipeline by cfn-dia](https://diagram.figmentresearch.com/util/ui-deploy)
+[diagram](https://diagram.figmentresearch.com/util)
 
 ## Purpose
 
@@ -30,11 +26,7 @@ Getting data through Graph QL Api using Amplify JavaScript.
 * `cdk deploy UtilPermitStack`
 * `cdk deploy UtilUiDistroStack`
 * `cdk deploy UtilUiDeployStack`
-* `npm run diagram-api`
-* `npm run diagram-db`
-* `npm run diagram-permit`
-* `npm run diagram-ui-distro`
-* `npm run diagram-ui-deploy`
+* `npm run diagram`
 * `npm run save-context`
 
 ## Parameters

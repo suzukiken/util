@@ -9,11 +9,7 @@
     "watch": "tsc -w",
     "test": "jest",
     "cdk": "cdk",
-    "diagram-api": "cfn-dia html -o diagram && aws s3 sync diagram s3://diagram.figmentresearch.com/util/api",
-    "diagram-db": "cfn-dia html -o diagram && aws s3 sync diagram s3://diagram.figmentresearch.com/util/db",
-    "diagram-db": "cfn-dia html -o diagram && aws s3 sync diagram s3://diagram.figmentresearch.com/util/permit",
-    "diagram-ui-distro": "cfn-dia html -o diagram && aws s3 sync diagram s3://diagram.figmentresearch.com/util/ui-distro",
-    "diagram-ui-deploy": "cfn-dia html -o diagram && aws s3 sync diagram s3://diagram.figmentresearch.com/util/ui-deploy",
+    "diagram": "cfn-dia html -o diagram && aws s3 sync diagram s3://diagram.figmentresearch.com/util",
     "save-context": "aws s3 cp . s3://cdkcontext-figmentresearch-com/util/ --recursive --exclude \"*\" --include \"cdk*.json\" --exclude \"*/*\""
   },
   "devDependencies": {
