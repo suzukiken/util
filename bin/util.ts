@@ -1,21 +1,25 @@
 #!/usr/bin/env node
 import 'source-map-support/register';
 import * as cdk from '@aws-cdk/core';
-import { UtilStack } from '../lib/util-stack';
+import { UtilDbStack } from '../lib/util-db-stack';
+import { UtilApiStack } from '../lib/util-api-stack';
+import { UtilPermitStack } from '../lib/util-permit-stack';
+import { UtilUiDistroStack } from '../lib/util-ui-distro-stack';
+import { UtilUiDeployStack } from '../lib/util-ui-deploy-stack';
 
 const app = new cdk.App();
-new UtilStack(app, 'UtilStack', {
-  /* If you don't specify 'env', this stack will be environment-agnostic.
-   * Account/Region-dependent features and context lookups will not work,
-   * but a single synthesized template can be deployed anywhere. */
-
-  /* Uncomment the next line to specialize this stack for the AWS Account
-   * and Region that are implied by the current CLI configuration. */
-  // env: { account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION },
-
-  /* Uncomment the next line if you know exactly what Account and Region you
-   * want to deploy the stack to. */
-  // env: { account: '123456789012', region: 'us-east-1' },
-
-  /* For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html */
+new UtilDbStack(app, 'UtilDbStack', {
+  env: { account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION }
+});
+new UtilApiStack(app, 'UtilApiStack', {
+  env: { account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION }
+});
+new UtilPermitStack(app, 'UtilPermitStack', {
+  env: { account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION }
+});
+new UtilUiDistroStack(app, 'UtilUiDistroStack', {
+  env: { account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION }
+});
+new UtilUiDeployStack(app, 'UtilUiDeployStack', {
+  env: { account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION }
 });
