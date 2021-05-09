@@ -40,12 +40,12 @@ export class UtilApiStack extends cdk.Stack {
     
     new cdk.CfnOutput(this, 'AppsyncapiId', { 
       exportName: this.node.tryGetContext('appsyncapiid_exportname'), 
-      value: table.tableName,
+      value: api.apiId,
     })
     
     new cdk.CfnOutput(this, 'AppsyncapiUrl', { 
       exportName: this.node.tryGetContext('appsyncapiurl_exportname'), 
-      value: table.tableName,
+      value: api.graphqlUrl,
     })
   }
 }
