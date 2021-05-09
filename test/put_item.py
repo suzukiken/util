@@ -9,7 +9,7 @@ resource = boto3.resource('dynamodb', config=config)
 table = resource.Table(TABLE_NAME)
 
 item = {
-    'id': 'sample-array',
+    'id': '1',
     'value': [
         'suzuki',
         '鈴木',
@@ -23,7 +23,7 @@ response = table.put_item(
     ReturnConsumedCapacity='TOTAL')
     
 item = {
-    'id': 'sample-dict',
+    'id': '2',
     'value': {
         'english': 'suzuki',
         'kanji': '鈴木',

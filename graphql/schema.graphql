@@ -1,3 +1,11 @@
+type Diction {
+  number: String
+  kanji: String
+  english: String
+  katakana: String
+}
 type Query {
-  get(id: ID!): String
+  get: String
+  getStrings: [String]
+  getDiction: Diction
 }

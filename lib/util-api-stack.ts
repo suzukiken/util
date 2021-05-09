@@ -38,6 +38,32 @@ export class UtilApiStack extends cdk.Stack {
       responseMappingTemplate: appsync.MappingTemplate.dynamoDbResultItem(),
     })
     
+    dynamo_datasource.createResolver({
+      typeName: "Query",
+      fieldName: "getStrings",
+      requestMappingTemplate: appsync.MappingTemplate.fromString(
+        `{"version": "2017-02-28", "operation": "GetItem", "key": {"id": $util.dynamodb.toDynamoDBJson("1")}}`
+      ),
+      responseMappingTemplate: appsync.MappingTemplate.fromString(
+        `
+          $util.toJson($ctx.result.value)
+        `
+      ),
+    })
+    
+    dynamo_datasource.createResolver({
+      typeName: "Query",
+      fieldName: "getDiction",
+      requestMappingTemplate: appsync.MappingTemplate.fromString(
+        `{"version": "2017-02-28", "operation": "GetItem", "key": {"id": $util.dynamodb.toDynamoDBJson("2")}}`
+      ),
+      responseMappingTemplate: appsync.MappingTemplate.fromString(
+        `
+          $util.toJson($ctx.result.value)
+        `
+      ),
+    })
+    
     new cdk.CfnOutput(this, 'AppsyncapiId', { 
       exportName: this.node.tryGetContext('appsyncapiid_exportname'), 
       value: api.apiId,
