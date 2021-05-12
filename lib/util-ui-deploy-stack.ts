@@ -38,17 +38,19 @@ export class UtilUiDeployStack extends cdk.Stack {
     
     // code pipeline
     
+    const environmentVariables = {
+      COGNITO_IDPOOL_ID: { value: COGNITO_IDPOOL_ID },
+      COGNITO_USERPOOL_ID: { value: COGNITO_USERPOOL_ID },
+      COGNITO_USERPOOL_WEBCLIENT_ID: { value: COGNITO_USERPOOL_WEBCLIENT_ID },
+      COGNITO_USERPOOL_DOMAINNAME: { value: COGNITO_USERPOOL_DOMAINNAME },
+      COGNITO_USERPOOL_SIGNIN_URL: { value: COGNITO_USERPOOL_URL },
+      COGNITO_USERPOOL_SIGNOUT_URL: { value: COGNITO_USERPOOL_URL },
+      APPSYNC_GRAPHQL_URL: { value: APPSYNC_GRAPHQL_URL },
+    }
+    
     const pipeline_project = new codebuild.PipelineProject(this, 'pipeline_project', {
       buildSpec: codebuild.BuildSpec.fromSourceFilename('buildspec.yml'), // this line is not necessary. 
-      environmentVariables: {
-        COGNITO_IDPOOL_ID: { value: COGNITO_IDPOOL_ID },
-        COGNITO_USERPOOL_ID: { value: COGNITO_USERPOOL_ID },
-        COGNITO_USERPOOL_WEBCLIENT_ID: { value: COGNITO_USERPOOL_WEBCLIENT_ID },
-        COGNITO_USERPOOL_DOMAINNAME: { value: COGNITO_USERPOOL_DOMAINNAME },
-        COGNITO_USERPOOL_SIGNIN_URL: { value: COGNITO_USERPOOL_URL },
-        COGNITO_USERPOOL_SIGNOUT_URL: { value: COGNITO_USERPOOL_URL },
-        APPSYNC_GRAPHQL_URL: { value: APPSYNC_GRAPHQL_URL },
-      }
+      environmentVariables: environmentVariables
     })
     
     const source_output = new codepipeline.Artifact();
@@ -172,5 +174,9 @@ export class UtilUiDeployStack extends cdk.Stack {
       ],
     })
     
+    new cdk.CfnOutput(this, 'Params', { 
+      exportName: this.node.tryGetContext('aws_exports_params_exportname'), 
+      value: JSON.stringify(environmentVariables)
+    })
   }
 }

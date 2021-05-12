@@ -8,18 +8,23 @@ import { UtilUiDistroStack } from '../lib/util-ui-distro-stack';
 import { UtilUiDeployStack } from '../lib/util-ui-deploy-stack';
 
 const app = new cdk.App();
-new UtilDbStack(app, 'UtilDbStack', {
+const utilDbStack = new UtilDbStack(app, 'UtilDbStack', {
   env: { account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION }
 });
-new UtilApiStack(app, 'UtilApiStack', {
+const utilApiStack = new UtilApiStack(app, 'UtilApiStack', {
   env: { account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION }
 });
-new UtilPermitStack(app, 'UtilPermitStack', {
+const utilPermitStack = new UtilPermitStack(app, 'UtilPermitStack', {
   env: { account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION }
 });
-new UtilUiDistroStack(app, 'UtilUiDistroStack', {
+const utilUiDistroStack = new UtilUiDistroStack(app, 'UtilUiDistroStack', {
   env: { account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION }
 });
-new UtilUiDeployStack(app, 'UtilUiDeployStack', {
+const utilUiDeployStack = new UtilUiDeployStack(app, 'UtilUiDeployStack', {
   env: { account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION }
 });
+
+utilUiDeployStack.addDependency(utilUiDistroStack)
+utilUiDeployStack.addDependency(utilApiStack)
+utilPermitStack.addDependency(utilApiStack)
+utilApiStack.addDependency(utilDbStack)
