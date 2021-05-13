@@ -1,6 +1,8 @@
 import * as cdk from '@aws-cdk/core';
 import * as dynamodb from "@aws-cdk/aws-dynamodb";
 import * as appsync from "@aws-cdk/aws-appsync";
+import * as lambda from '@aws-cdk/aws-lambda';
+import { PythonFunction } from '@aws-cdk/aws-lambda-python';
 
 export class UtilApiStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
@@ -8,6 +10,7 @@ export class UtilApiStack extends cdk.Stack {
     
     const basename = this.node.tryGetContext('basename')
     const tablename = cdk.Fn.importValue(this.node.tryGetContext('tablename_exportname'))
+    const cognito_userpool_id = cdk.Fn.importValue(this.node.tryGetContext('cognito_userpool_id_exportname'))
     
     const api = new appsync.GraphqlApi(this, "api", {
       name: basename + "-api",
@@ -27,7 +30,7 @@ export class UtilApiStack extends cdk.Stack {
     const table = dynamodb.Table.fromTableName(this, "Table", tablename)
     
     const dynamo_datasource = api.addDynamoDbDataSource(
-      "dynamo_datasource",
+      "Dynamo",
       table
     )
 
@@ -62,6 +65,25 @@ export class UtilApiStack extends cdk.Stack {
           $util.toJson($ctx.result.value)
         `
       ),
+    })
+    
+    const auth_function = new PythonFunction(this, "Auth", {
+      entry: "lambda/auth",
+      index: "main.py",
+      handler: "lambda_handler",
+      runtime: lambda.Runtime.PYTHON_3_8,
+      environment: {
+        USERPOOL_ID: cognito_userpool_id
+      }
+    })
+    
+    const lambda_datasource = api.addLambdaDataSource('Lambda', auth_function)
+    
+    lambda_datasource.createResolver({
+      typeName: "Mutation",
+      fieldName: "put",
+      requestMappingTemplate: appsync.MappingTemplate.lambdaRequest(),
+      responseMappingTemplate: appsync.MappingTemplate.lambdaResult(),
     })
     
     new cdk.CfnOutput(this, 'AppsyncapiId', { 

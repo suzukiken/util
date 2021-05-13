@@ -9,3 +9,6 @@ type Query {
   getStrings: [String]
   getDiction: Diction
 }
+type Mutation {
+  put: String
+}

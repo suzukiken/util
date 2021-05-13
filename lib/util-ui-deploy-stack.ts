@@ -24,7 +24,7 @@ export class UtilUiDeployStack extends cdk.Stack {
     const COGNITO_USERPOOL_ID = cdk.Fn.importValue(this.node.tryGetContext('cognito_userpool_id_exportname'))
     const COGNITO_USERPOOL_WEBCLIENT_ID = cdk.Fn.importValue(this.node.tryGetContext('cognito_userpool_webclient_id_exportname'))
     const COGNITO_USERPOOL_DOMAINNAME = cdk.Fn.importValue(this.node.tryGetContext('cognito_userpool_fqdn_exportname'))
-    const COGNITO_USERPOOL_URL = 'https://' + subdomain + '.' + domain + '/'
+    const COGNITO_USERPOOL_URL = 'https://' + subdomain + '.' + domain // + '/'
     const APPSYNC_GRAPHQL_URL = cdk.Fn.importValue(this.node.tryGetContext('appsyncapiurl_exportname'))
     const DISTRIBUTION_ID = cdk.Fn.importValue(this.node.tryGetContext('distributionid_exportname'))
 
@@ -140,8 +140,8 @@ export class UtilUiDeployStack extends cdk.Stack {
     // Lambda of Dynamo Stream Poller
     
     const invalidate_function = new PythonFunction(this, "invalidate_function", {
-      entry: "lambda",
-      index: "invalidate-cloudfront.py",
+      entry: "lambda/invalidate-cloudfront",
+      index: "main.py",
       handler: "lambda_handler",
       runtime: lambda.Runtime.PYTHON_3_8,
       role: invalidate_role,
