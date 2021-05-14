@@ -4,10 +4,17 @@ type Diction {
   english: String
   katakana: String
 }
+type CloudFormationExport {
+  stack: String
+  name: String
+  value: String
+  imports: [String]
+}
 type Query {
   get: String
   getStrings: [String]
   getDiction: Diction
+  listCrossStackReferences: [ CloudFormationExport ]
 }
 type Mutation {
   put: String

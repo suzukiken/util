@@ -26,6 +26,7 @@ Getting data through Graph QL Api using Amplify JavaScript.
 * `cdk deploy UtilPermitStack`
 * `cdk deploy UtilUiDistroStack`
 * `cdk deploy UtilUiDeployStack`
+* `cdk deploy UtilCrossstackinfoUpdaterStack`
 * `npm run diagram`
 * `npm run save-context`
 

@@ -67,6 +67,19 @@ export class UtilApiStack extends cdk.Stack {
       ),
     })
     
+    dynamo_datasource.createResolver({
+      typeName: "Query",
+      fieldName: "listCrossStackReferences",
+      requestMappingTemplate: appsync.MappingTemplate.fromString(
+        `{"version": "2017-02-28", "operation": "GetItem", "key": {"id": $util.dynamodb.toDynamoDBJson("3")}}`
+      ),
+      responseMappingTemplate: appsync.MappingTemplate.fromString(
+        `
+          $util.toJson($ctx.result.value)
+        `
+      ),
+    })
+    
     const auth_function = new PythonFunction(this, "Auth", {
       entry: "lambda/auth",
       index: "main.py",
