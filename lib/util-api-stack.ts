@@ -115,6 +115,33 @@ export class UtilApiStack extends cdk.Stack {
       ),
     })
     
+    dynamo_datasource.createResolver({
+      typeName: "Mutation",
+      fieldName: "batchPutFictions",
+      requestMappingTemplate: appsync.MappingTemplate.fromString(
+        `
+          #set($items = [])
+          #foreach($fiction in $ctx.args.fictions)
+            #set($id = $fiction.get("id"))
+            #if(!$id || $id == "")
+              $util.qr($fiction.put("id", $util.autoId()))
+            #end
+            $util.qr($items.add($util.dynamodb.toMapValues($fiction)))
+          #end
+          {
+            "version" : "2018-05-29",
+            "operation" : "BatchPutItem",
+            "tables" : {
+              "util-table": $util.toJson($items)
+            }
+          }
+        `
+      ),
+      responseMappingTemplate: appsync.MappingTemplate.fromString(
+        `$util.toJson($ctx.result.data.util-table)`
+      ),
+    })
+
     const auth_function = new PythonFunction(this, "Auth", {
       entry: "lambda/auth",
       index: "main.py",

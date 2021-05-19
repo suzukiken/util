@@ -41,7 +41,7 @@ input FictionInput {
   pcs: Int
   ship: AWSDate
 }
-type DeletedId {
+type RequestedId {
   id: String
 }
 type Query {
@@ -53,5 +53,6 @@ type Query {
 type Mutation {
   updateFiction(input: FictionInput): Fiction
   deleteFiction(id: String): Fiction
-  batchDeleteFictions(ids: [String]): [ DeletedId ]
+  batchDeleteFictions(ids: [String]): [ RequestedId ]
+  batchPutFictions(fictions: [FictionInput]): [ Fiction ]
 }
