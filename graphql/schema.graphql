@@ -41,6 +41,9 @@ input FictionInput {
   pcs: Int
   ship: AWSDate
 }
+type DeletedId {
+  id: String
+}
 type Query {
   get(id: String): String
   listCrossStackReferences: [ CloudFormationExport ]
@@ -50,4 +53,5 @@ type Query {
 type Mutation {
   updateFiction(input: FictionInput): Fiction
   deleteFiction(id: String): Fiction
+  batchDeleteFictions(ids: [String]): [ DeletedId ]
 }

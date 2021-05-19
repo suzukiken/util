@@ -10,7 +10,7 @@ config = Config(retries={'max_attempts': 10, 'mode': 'standard'})
 resource = boto3.resource('dynamodb', config=config)
 table = resource.Table(TABLE_NAME)
 
-for i in range(520, 530):
+for i in range(620, 630):
     theid = str(uuid.uuid1())
     dt = date.today() - timedelta(days=1)
     item = {

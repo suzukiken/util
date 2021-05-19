@@ -33,7 +33,7 @@ export class UtilApiStack extends cdk.Stack {
       "Dynamo",
       table
     )
-
+    
     dynamo_datasource.createResolver({
       typeName: "Query",
       fieldName: "get",
@@ -88,6 +88,31 @@ export class UtilApiStack extends cdk.Stack {
       fieldName: "deleteFiction",
       requestMappingTemplate: appsync.MappingTemplate.dynamoDbDeleteItem('id', 'id'),
       responseMappingTemplate: appsync.MappingTemplate.dynamoDbResultItem(),
+    })
+    
+    dynamo_datasource.createResolver({
+      typeName: "Mutation",
+      fieldName: "batchDeleteFictions",
+      requestMappingTemplate: appsync.MappingTemplate.fromString(
+        `
+          #set($ids = [])
+          #foreach($id in $ctx.args.ids)
+            #set($map = {})
+            $util.qr($map.put("id", $util.dynamodb.toString($id)))
+            $util.qr($ids.add($map))
+          #end
+          {
+            "version" : "2018-05-29",
+            "operation" : "BatchDeleteItem",
+            "tables" : {
+              "util-table": $util.toJson($ids)
+            }
+          }
+        `
+      ),
+      responseMappingTemplate: appsync.MappingTemplate.fromString(
+        `$util.toJson($ctx.result.data.util-table)`
+      ),
     })
     
     const auth_function = new PythonFunction(this, "Auth", {
