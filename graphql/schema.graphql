@@ -1,8 +1,25 @@
-type Diction {
-  number: String
-  kanji: String
-  english: String
-  katakana: String
+type JwtClaimIdentity {
+  userId: String
+  providerName: String
+  providerType: String
+  issuer: String
+  primary: String
+  dateCreated: String
+}
+type JwtClaims {
+  at_hash: String
+  sub: String
+  cognito_groups: [String]
+  email_verified: Boolean
+  iss: String
+  cognito_username: String
+  aud: String
+  identities: [JwtClaimIdentity]
+  token_use: String
+  auth_time: String
+  exp: String
+  iat: String
+  email: String
 }
 type CloudFormationExport {
   stack: String
@@ -10,12 +27,27 @@ type CloudFormationExport {
   value: String
   imports: [String]
 }
+type Fiction {
+  id: String
+  sku: Int
+  name: String
+  pcs: Int
+  ship: AWSDate
+}
+input FictionInput {
+  id: String
+  sku: Int
+  name: String
+  pcs: Int
+  ship: AWSDate
+}
 type Query {
-  get: String
-  getStrings: [String]
-  getDiction: Diction
+  get(id: String): String
   listCrossStackReferences: [ CloudFormationExport ]
+  parseJwt: JwtClaims
+  listFictions: [ Fiction ]
 }
 type Mutation {
-  put: String
+  updateFiction(input: FictionInput): Fiction
+  deleteFiction(id: String): Fiction
 }

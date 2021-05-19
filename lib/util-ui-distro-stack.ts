@@ -19,7 +19,7 @@ export class UtilUiDistroStack extends cdk.Stack {
     const bucket = new s3.Bucket(this, 'bucket', {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       websiteIndexDocument: "index.html",
-      websiteErrorDocument: "error.html",
+      websiteErrorDocument: "index.html",
       publicReadAccess: true,
       cors: [
         {

@@ -76,7 +76,7 @@ def lambda_handler(event, context):
         })
 
     item = {
-        'id': '3',
+        'id': 'cloudformation-exported-list',
         'value': thelist
     }
     response = table.put_item(Item=item)

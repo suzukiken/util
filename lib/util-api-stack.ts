@@ -43,41 +43,51 @@ export class UtilApiStack extends cdk.Stack {
     
     dynamo_datasource.createResolver({
       typeName: "Query",
-      fieldName: "getStrings",
-      requestMappingTemplate: appsync.MappingTemplate.fromString(
-        `{"version": "2017-02-28", "operation": "GetItem", "key": {"id": $util.dynamodb.toDynamoDBJson("1")}}`
-      ),
-      responseMappingTemplate: appsync.MappingTemplate.fromString(
-        `
-          $util.toJson($ctx.result.value)
-        `
-      ),
-    })
-    
-    dynamo_datasource.createResolver({
-      typeName: "Query",
-      fieldName: "getDiction",
-      requestMappingTemplate: appsync.MappingTemplate.fromString(
-        `{"version": "2017-02-28", "operation": "GetItem", "key": {"id": $util.dynamodb.toDynamoDBJson("2")}}`
-      ),
-      responseMappingTemplate: appsync.MappingTemplate.fromString(
-        `
-          $util.toJson($ctx.result.value)
-        `
-      ),
-    })
-    
-    dynamo_datasource.createResolver({
-      typeName: "Query",
       fieldName: "listCrossStackReferences",
       requestMappingTemplate: appsync.MappingTemplate.fromString(
-        `{"version": "2017-02-28", "operation": "GetItem", "key": {"id": $util.dynamodb.toDynamoDBJson("3")}}`
+        `{"version": "2017-02-28", "operation": "GetItem", "key": {"id": $util.dynamodb.toDynamoDBJson("cloudformation-exported-list")}}`
       ),
       responseMappingTemplate: appsync.MappingTemplate.fromString(
+        `$util.toJson($ctx.result.value)`
+      ),
+    })
+    
+    dynamo_datasource.createResolver({
+      typeName: "Query",
+      fieldName: "listFictions",
+      requestMappingTemplate: appsync.MappingTemplate.fromString(
         `
-          $util.toJson($ctx.result.value)
+          {
+            "version" : "2017-02-28",
+            "operation" : "Scan",
+            "limit" : 100,
+            "filter" : {
+              "expression" : "begins_with(id, :id)",
+              "expressionValues" : {
+                  ":id" : $util.dynamodb.toDynamoDBJson("fiction-")
+              }
+            }
+          }
         `
       ),
+      responseMappingTemplate: appsync.MappingTemplate.dynamoDbResultList()
+    })
+    
+    dynamo_datasource.createResolver({
+      typeName: "Mutation",
+      fieldName: "updateFiction",
+      requestMappingTemplate: appsync.MappingTemplate.dynamoDbPutItem(
+        appsync.PrimaryKey.partition('id').is('input.id'),
+        appsync.Values.projecting('input')
+      ),
+      responseMappingTemplate: appsync.MappingTemplate.dynamoDbResultItem(),
+    })
+    
+    dynamo_datasource.createResolver({
+      typeName: "Mutation",
+      fieldName: "deleteFiction",
+      requestMappingTemplate: appsync.MappingTemplate.dynamoDbDeleteItem('id', 'id'),
+      responseMappingTemplate: appsync.MappingTemplate.dynamoDbResultItem(),
     })
     
     const auth_function = new PythonFunction(this, "Auth", {
@@ -93,8 +103,8 @@ export class UtilApiStack extends cdk.Stack {
     const lambda_datasource = api.addLambdaDataSource('Lambda', auth_function)
     
     lambda_datasource.createResolver({
-      typeName: "Mutation",
-      fieldName: "put",
+      typeName: "Query",
+      fieldName: "parseJwt",
       requestMappingTemplate: appsync.MappingTemplate.lambdaRequest(),
       responseMappingTemplate: appsync.MappingTemplate.lambdaResult(),
     })

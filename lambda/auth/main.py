@@ -50,6 +50,8 @@ def lambda_handler(event, context):
     claims = jwt.get_unverified_claims(token)
     print(claims)
     print(claims['email'])
+    claims['cognito_username'] = claims['cognito:username']
+    claims['cognito_groups'] = claims['cognito:groups']
     
-    return 'hello'
+    return claims
     
