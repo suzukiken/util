@@ -124,7 +124,7 @@ export class UtilApiStack extends cdk.Stack {
           #foreach($fiction in $ctx.args.fictions)
             #set($id = $fiction.get("id"))
             #if(!$id || $id == "")
-              $util.qr($fiction.put("id", $util.autoId()))
+              $util.qr($fiction.put("id", "fiction-$util.autoId()"))
             #end
             $util.qr($items.add($util.dynamodb.toMapValues($fiction)))
           #end
