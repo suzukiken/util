@@ -240,7 +240,7 @@ export class UtilApiStack extends cdk.Stack {
         "params":{
           "body": {
             "from": 0,
-            "size": 50,
+            "size": 200,
             "query": {
               "match": {
                 "title": "$\{context.args.title\}"
@@ -257,6 +257,36 @@ export class UtilApiStack extends cdk.Stack {
         #end
       ]`,
     });
+    
+    const es_search_phrase_resolver = new appsync.CfnResolver(this, "EsPhraseResolver", {
+      apiId: api.apiId,
+      typeName: "Query",
+      fieldName: "searchProductPhrase",
+      dataSourceName: es_datasource.name,
+      requestMappingTemplate: `{
+        "version":"2017-02-28",
+        "operation":"GET",
+        "path":"/${ELASTICSEARCH_INDEX}/_search",
+        "params":{
+          "body": {
+            "from": 0,
+            "size": 200,
+            "query": {
+              "match_phrase": {
+                "title": "$\{context.args.title\}"
+              }
+            }
+          }
+        }
+      }`,
+      responseMappingTemplate: `[
+        #foreach($entry in $context.result.hits.hits)
+          ## $velocityCount starts at 1 and increments with the #foreach loop **
+          #if( $velocityCount > 1 ) , #end
+          $util.toJson($entry.get("_source"))
+        #end
+      ]`,
+    })
 
     const es_all_resolver = new appsync.CfnResolver(this, "es_all_resolver", {
       apiId: api.apiId,
@@ -286,6 +316,7 @@ export class UtilApiStack extends cdk.Stack {
 
     // これが無いとNotFoundのエラーが出る
     es_search_resolver.addDependsOn(es_datasource);
+    es_search_phrase_resolver.addDependsOn(es_datasource);
     es_all_resolver.addDependsOn(es_datasource);
     
     // Output

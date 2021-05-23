@@ -49,20 +49,21 @@ input FictionInput {
 type RequestedId {
   id: String
 }
-type Query {
-  get(id: String): String
-  listCrossStackReferences: [ CloudFormationExport ]
-  parseJwt: JwtClaims
-  listFictions: [ Fiction ]
-  searchProduct(title: String!): [ Product ]
-  listProducts: [ Product ]
-}
 type Event {
   message: String
 }
 type Product {
   id: ID!
   title: String!
+}
+type Query {
+  get(id: String): String
+  listCrossStackReferences: [ CloudFormationExport ]
+  parseJwt: JwtClaims
+  listFictions: [ Fiction ]
+  searchProduct(title: String!): [ Product ]
+  searchProductPhrase(title: String!): [ Product ]
+  listProducts: [ Product ]
 }
 type Mutation {
   updateFiction(input: FictionInput): Fiction
