@@ -1,3 +1,8 @@
+schema {
+    query: Query
+    mutation: Mutation
+    subscription: Subscription
+}
 type JwtClaimIdentity {
   userId: String
   providerName: String
@@ -49,10 +54,24 @@ type Query {
   listCrossStackReferences: [ CloudFormationExport ]
   parseJwt: JwtClaims
   listFictions: [ Fiction ]
+  searchProduct(title: String!): [ Product ]
+  listProducts: [ Product ]
+}
+type Event {
+  message: String
+}
+type Product {
+  id: ID!
+  title: String!
 }
 type Mutation {
   updateFiction(input: FictionInput): Fiction
   deleteFiction(id: String): Fiction
   batchDeleteFictions(ids: [String]): [ RequestedId ]
   batchPutFictions(fictions: [FictionInput]): [ Fiction ]
+  putEvent(message: String): Event
+}
+type Subscription {
+  eventHappened: Event
+  @aws_subscribe(mutations: ["putEvent"])
 }

@@ -1,9 +1,11 @@
 ```
 python -m venv env
 source env/bin/activate
-pip install boto3
+pip install -r requirements.txt
+source setenv.sh
 python put_item.py
 python put_fictions.py
+python put_products.py
 ```
 
 ```

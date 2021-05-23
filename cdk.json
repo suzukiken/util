@@ -32,6 +32,8 @@
     "appsyncapiurl_exportname": "v-util-appsync-apiurl-1",
     "distributionid_exportname": "v-util-cloudfront-distributionid-1",
     "s3bucketname_exportname": "v-util-s3-bucketname-1",
-    "aws_exports_params_exportname": "v-util-aws-exports-params-1"
+    "aws_exports_params_exportname": "v-util-aws-exports-params-1",
+    "elasticsearch_endpoint": "https://search-cdkelasticsearch-xcqucvrf6gfqlztkgtfh4ayxoe.ap-northeast-1.es.amazonaws.com",
+    "elasticsearch_domainarn": "arn:aws:es:ap-northeast-1:656169322665:domain/cdkelasticsearch"
   }
 }

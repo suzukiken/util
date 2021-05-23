@@ -3,6 +3,8 @@ import * as dynamodb from "@aws-cdk/aws-dynamodb";
 import * as appsync from "@aws-cdk/aws-appsync";
 import * as lambda from '@aws-cdk/aws-lambda';
 import { PythonFunction } from '@aws-cdk/aws-lambda-python';
+import * as es from "@aws-cdk/aws-elasticsearch";
+import * as iam from "@aws-cdk/aws-iam";
 
 export class UtilApiStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
@@ -11,6 +13,12 @@ export class UtilApiStack extends cdk.Stack {
     const basename = this.node.tryGetContext('basename')
     const tablename = cdk.Fn.importValue(this.node.tryGetContext('tablename_exportname'))
     const cognito_userpool_id = cdk.Fn.importValue(this.node.tryGetContext('cognito_userpool_id_exportname'))
+    
+    const ELASTICSEARCH_INDEX = "product-index";
+
+    const es_endpoint = this.node.tryGetContext('elasticsearch_endpoint')
+    const es_domain_arn = this.node.tryGetContext('elasticsearch_domainarn')
+    const es_domain = es.Domain.fromDomainEndpoint(this, "EsDomain", es_endpoint)
     
     const api = new appsync.GraphqlApi(this, "api", {
       name: basename + "-api",
@@ -28,11 +36,7 @@ export class UtilApiStack extends cdk.Stack {
     })
     
     const table = dynamodb.Table.fromTableName(this, "Table", tablename)
-    
-    const dynamo_datasource = api.addDynamoDbDataSource(
-      "Dynamo",
-      table
-    )
+    const dynamo_datasource = api.addDynamoDbDataSource("Dynamo", table)
     
     dynamo_datasource.createResolver({
       typeName: "Query",
@@ -141,6 +145,26 @@ export class UtilApiStack extends cdk.Stack {
         `$util.toJson($ctx.result.data.util-table)`
       ),
     })
+    
+    const none_datasource = new appsync.NoneDataSource(this, 'None', {
+      api: api
+    })
+    
+    none_datasource.createResolver({
+      typeName: "Mutation",
+      fieldName: "putEvent",
+      requestMappingTemplate: appsync.MappingTemplate.fromString(
+        `{
+          "version": "2018-05-29",
+          "payload": {
+            "message": "$ctx.args.message"
+          }
+        }`
+      ),
+      responseMappingTemplate: appsync.MappingTemplate.fromString(
+        `$util.toJson($ctx.result)`
+      ),
+    })
 
     const auth_function = new PythonFunction(this, "Auth", {
       entry: "lambda/auth",
@@ -160,6 +184,111 @@ export class UtilApiStack extends cdk.Stack {
       requestMappingTemplate: appsync.MappingTemplate.lambdaRequest(),
       responseMappingTemplate: appsync.MappingTemplate.lambdaResult(),
     })
+    
+    // ES
+
+    // Role for appsync that query Elasticsearch
+
+    const appsync_es_role = new iam.Role(this, "appsync_es_role", {
+      assumedBy: new iam.ServicePrincipal("appsync.amazonaws.com"),
+      roleName: "cdkappsync-es-role",
+    });
+
+    const appsync_es_policy_statement = new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+    });
+
+    appsync_es_policy_statement.addActions("es:ESHttpPost");
+    appsync_es_policy_statement.addActions("es:ESHttpDelete");
+    appsync_es_policy_statement.addActions("es:ESHttpHead");
+    appsync_es_policy_statement.addActions("es:ESHttpGet");
+    appsync_es_policy_statement.addActions("es:ESHttpPut");
+
+    appsync_es_policy_statement.addResources(
+      es_domain_arn + "/*"
+    );
+
+    const appsync_es_policy = new iam.Policy(this, "appsync_es_policy", {
+      policyName: "cdkappsync-es-policy",
+      statements: [appsync_es_policy_statement],
+    });
+
+    appsync_es_role.attachInlinePolicy(appsync_es_policy);
+
+    // Register Elasticsearch as data source and resolvers
+
+    const es_datasource = new appsync.CfnDataSource(this, "es_datasource", {
+      apiId: api.apiId,
+      name: "elasticsearch",
+      type: "AMAZON_ELASTICSEARCH",
+      elasticsearchConfig: {
+        awsRegion: "ap-northeast-1",
+        endpoint: es_endpoint, // es_domain.domainEndpoint,
+      },
+      serviceRoleArn: appsync_es_role.roleArn,
+    });
+
+    const es_search_resolver = new appsync.CfnResolver(this, "EsResolver", {
+      apiId: api.apiId,
+      typeName: "Query",
+      fieldName: "searchProduct",
+      dataSourceName: es_datasource.name,
+      requestMappingTemplate: `{
+        "version":"2017-02-28",
+        "operation":"GET",
+        "path":"/${ELASTICSEARCH_INDEX}/_search",
+        "params":{
+          "body": {
+            "from": 0,
+            "size": 50,
+            "query": {
+              "match": {
+                "title": "$\{context.args.title\}"
+              }
+            }
+          }
+        }
+      }`,
+      responseMappingTemplate: `[
+        #foreach($entry in $context.result.hits.hits)
+          ## $velocityCount starts at 1 and increments with the #foreach loop **
+          #if( $velocityCount > 1 ) , #end
+          $util.toJson($entry.get("_source"))
+        #end
+      ]`,
+    });
+
+    const es_all_resolver = new appsync.CfnResolver(this, "es_all_resolver", {
+      apiId: api.apiId,
+      typeName: "Query",
+      fieldName: "listProducts",
+      dataSourceName: es_datasource.name,
+      requestMappingTemplate: `{
+        "version":"2017-02-28",
+        "operation":"GET",
+        "path":"/${ELASTICSEARCH_INDEX}/_search",
+        "params": {
+          "body": {
+            "query" : {
+              "match_all" : {}
+            }
+          }
+        }
+      }`,
+      responseMappingTemplate: `[
+        #foreach($entry in $context.result.hits.hits)
+          ## $velocityCount starts at 1 and increments with the #foreach loop **
+          #if( $velocityCount > 1 ) , #end
+          $util.toJson($entry.get("_source"))
+        #end
+      ]`,
+    });
+
+    // これが無いとNotFoundのエラーが出る
+    es_search_resolver.addDependsOn(es_datasource);
+    es_all_resolver.addDependsOn(es_datasource);
+    
+    // Output
     
     new cdk.CfnOutput(this, 'AppsyncapiId', { 
       exportName: this.node.tryGetContext('appsyncapiid_exportname'), 
