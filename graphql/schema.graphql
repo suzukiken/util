@@ -71,7 +71,9 @@ type Query {
   searchProduct(title: String!): [ Product ]
   searchProductPhrase(title: String!): [ Product ]
   listProducts: [ Product ]
+  getArticle(id: String): Article
   listArticles(limit: Int): [ Article ]
+  searchArticles(word: String): [ Article ]
 }
 type Mutation {
   updateFiction(input: FictionInput): Fiction
