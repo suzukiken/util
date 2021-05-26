@@ -1,17 +1,16 @@
-import requests
 from requests_aws4auth import AWS4Auth
-import os
+import boto3
 from elasticsearch import Elasticsearch, RequestsHttpConnection
 import uuid
+from datetime import datetime, timezone, timedelta
+import time
+import random
+import os
 from faker import Faker
-from faker_vehicle import VehicleProvider
-import boto3
 import json
+import random
 
-#fake = Faker()
 fake = Faker(['ja-JP'])
-# fake.add_provider(VehicleProvider)
-# fake.unique.vehicle_make_model()
 
 region = 'ap-northeast-1' 
 service = 'es'
@@ -19,8 +18,17 @@ credentials = boto3.Session().get_credentials()
 awsauth = AWS4Auth(credentials.access_key, credentials.secret_key, region, service, session_token=credentials.token)
 
 ENDPOINT = os.environ.get('ES_ENDPOINT')
-INDEX = 'product-index'
+INDEX = 'content-index'
 TYPE = 'doc'
+
+region = 'ap-northeast-1'
+service = 'es'
+credentials = boto3.Session().get_credentials()
+awsauth = AWS4Auth(credentials.access_key,
+                   credentials.secret_key,
+                   region,
+                   service,
+                   session_token=credentials.token)
 
 HOST = ENDPOINT.replace('https://', '')
 
@@ -32,17 +40,19 @@ es = Elasticsearch(
     connection_class=RequestsHttpConnection
 )
 
-for i in range(400, 800):
+for i in range(1, 100):
     
-    product = {
-        'id': i,
-        'title': fake.name()
+    document = {
+        "title": fake.name(),
+        "content": fake.address(),
+        "lank": random.randint(1, 100)
     }
     
     res = es.index(
         index=INDEX, 
         id=str(uuid.uuid1()), 
-        body=json.dumps(product), 
+        body=json.dumps(document), 
         doc_type=TYPE
     )
     print(res)
+

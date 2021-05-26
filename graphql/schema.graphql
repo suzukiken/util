@@ -56,6 +56,13 @@ type Product {
   id: ID!
   title: String!
 }
+type Article {
+  id: String
+  content: String
+  date: AWSDate
+  tags: [String]
+  title: String
+}
 type Query {
   get(id: String): String
   listCrossStackReferences: [ CloudFormationExport ]
@@ -64,6 +71,7 @@ type Query {
   searchProduct(title: String!): [ Product ]
   searchProductPhrase(title: String!): [ Product ]
   listProducts: [ Product ]
+  listArticles(limit: Int): [ Article ]
 }
 type Mutation {
   updateFiction(input: FictionInput): Fiction
@@ -76,3 +84,4 @@ type Subscription {
   eventHappened: Event
   @aws_subscribe(mutations: ["putEvent"])
 }
+

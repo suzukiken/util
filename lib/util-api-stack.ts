@@ -78,6 +78,27 @@ export class UtilApiStack extends cdk.Stack {
     })
     
     dynamo_datasource.createResolver({
+      typeName: "Query",
+      fieldName: "listArticles",
+       requestMappingTemplate: appsync.MappingTemplate.fromString(
+        `
+          {
+            "version" : "2017-02-28",
+            "operation" : "Scan",
+            "limit" : $ctx.args.limit,
+            "filter" : {
+              "expression" : "begins_with(id, :id)",
+              "expressionValues" : {
+                  ":id" : $util.dynamodb.toDynamoDBJson("blog/")
+              }
+            }
+          }
+        `
+      ),
+      responseMappingTemplate: appsync.MappingTemplate.dynamoDbResultList()
+    })
+    
+    dynamo_datasource.createResolver({
       typeName: "Mutation",
       fieldName: "updateFiction",
       requestMappingTemplate: appsync.MappingTemplate.dynamoDbPutItem(
