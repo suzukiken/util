@@ -15,6 +15,7 @@ export class UtilApiStack extends cdk.Stack {
     const cognito_userpool_id = cdk.Fn.importValue(this.node.tryGetContext('cognito_userpool_id_exportname'))
     
     const ELASTICSEARCH_INDEX = "product-index";
+    const ELASTICSEARCH_ARTICLE_INDEX = "article-index";
 
     const es_endpoint = this.node.tryGetContext('elasticsearch_endpoint')
     const es_domain_arn = this.node.tryGetContext('elasticsearch_domainarn')
@@ -362,6 +363,36 @@ export class UtilApiStack extends cdk.Stack {
         #end
       ]`,
     });
+    
+    const es_search_article_resolver = new appsync.CfnResolver(this, "ArticleEsResolver", {
+      apiId: api.apiId,
+      typeName: "Query",
+      fieldName: "searchArticlesEs",
+      dataSourceName: es_datasource.name,
+      requestMappingTemplate: `{
+        "version":"2017-02-28",
+        "operation":"GET",
+        "path":"/${ELASTICSEARCH_ARTICLE_INDEX}/_search",
+        "params":{
+          "body": {
+            "from": 0,
+            "size": 200,
+            "query": {
+              "match_phrase": {
+                "content": "$\{context.args.word\}"
+              }
+            }
+          }
+        }
+      }`,
+      responseMappingTemplate: `[
+        #foreach($entry in $context.result.hits.hits)
+          ## $velocityCount starts at 1 and increments with the #foreach loop **
+          #if( $velocityCount > 1 ) , #end
+          $util.toJson($entry.get("_source"))
+        #end
+      ]`,
+    })
 
     // これが無いとNotFoundのエラーが出る
     es_search_resolver.addDependsOn(es_datasource);

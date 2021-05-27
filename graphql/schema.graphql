@@ -63,6 +63,13 @@ type Article {
   tags: [String]
   title: String
 }
+type ArticleEs {
+  filename: String
+  content: String
+  date: AWSDate
+  tags: [String]
+  title: String
+}
 type Query {
   get(id: String): String
   listCrossStackReferences: [ CloudFormationExport ]
@@ -74,6 +81,7 @@ type Query {
   getArticle(id: String): Article
   listArticles(limit: Int): [ Article ]
   searchArticles(word: String): [ Article ]
+  searchArticlesEs(word: String): [ ArticleEs ]
 }
 type Mutation {
   updateFiction(input: FictionInput): Fiction
