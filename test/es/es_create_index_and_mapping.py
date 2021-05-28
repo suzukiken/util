@@ -13,7 +13,7 @@ credentials = boto3.Session().get_credentials()
 awsauth = AWS4Auth(credentials.access_key, credentials.secret_key, region, service, session_token=credentials.token)
 
 ENDPOINT = os.environ.get('ES_ENDPOINT')
-INDEX = 'article-index'
+INDEX = 'test-index'
 TYPE = 'doc'
 
 region = 'ap-northeast-1'
@@ -36,17 +36,26 @@ es = Elasticsearch(
 )
 
 body = {
-    "index":{
+    "settings":{
         "analysis":{
             "tokenizer" : {
-                "kuromoji" : {
-                    "type" : "kuromoji_tokenizer"
+                "kuromoji_search_tokenizer" : {
+                    "type" : "kuromoji_tokenizer",
+                    "mode": "search"
+                },
+                "kuromoji_normal_tokenizer" : {
+                    "type" : "kuromoji_tokenizer",
+                    "mode": "normal"
                 }
             },
             "analyzer" : {
-                "analyzer" : {
+                "kuromoji_search_analyzer" : {
                     "type" : "custom",
-                    "tokenizer" : "kuromoji"
+                    "tokenizer" : "kuromoji_search_tokenizer"
+                },
+                "kuromoji_normal_analyzer" : {
+                    "type" : "custom",
+                    "tokenizer" : "kuromoji_normal_tokenizer"
                 }
             }
         }
@@ -54,33 +63,20 @@ body = {
     "mappings": {
         "doc": {
             "properties": {
-                "filename": {
+                "content": {
                     "type": "string"
+                },
+                "content_search": {
+                    "type": "string",
+                    "analyzer": "kuromoji_search_analyzer"
+                },
+                "content_normal": {
+                    "type": "string",
+                    "analyzer": "kuromoji_normal_analyzer"
                 },
                 "title": {
                     "type": "string",
-                    "analyzer": "kuromoji"
-                },
-                "content": {
-                    "type": "string",
-                    "analyzer": "kuromoji"
-                },
-                "tags": {
-                    "type": "string"
-                },
-                "date": {
-                    "type": "date",
-                    "format": "strict_date_optional_time||epoch_millis",
-                    "fields": {
-                        "raw": {
-                            "type": "string",
-                            "index": "not_analyzed"
-                        },
-                        "ana": {
-                            "type": "string",
-                            "index": "analyzed"
-                        }
-                    }
+                    "analyzer": "kuromoji_normal_analyzer"
                 },
                 "lank": {
                     "type": "long"
@@ -93,5 +89,3 @@ body = {
 res = es.indices.create(index=INDEX, body=body)
 
 print(res)
-
-analysis-kuromoji
