@@ -46,6 +46,10 @@ input FictionInput {
   pcs: Int
   ship: AWSDate
 }
+input LankInput {
+  id: String
+  lank: Int
+}
 type RequestedId {
   id: String
 }
@@ -63,12 +67,21 @@ type Article {
   tags: [String]
   title: String
 }
-type ArticleEs {
-  filename: String
-  content: String
-  date: AWSDate
+type BlogArticleHighlight {
+  title: [String]
+  content: [String]
+  category: [String]
   tags: [String]
+}
+type BlogArticle {
+  id: String
   title: String
+  content: String
+  category: String
+  tags: [String]
+  date: String
+  lank: Int
+  highlight: BlogArticleHighlight
 }
 type Query {
   get(id: String): String
@@ -78,10 +91,10 @@ type Query {
   searchProduct(title: String!): [ Product ]
   searchProductPhrase(title: String!): [ Product ]
   listProducts: [ Product ]
+  searchBlogs(word: String): [ BlogArticle ]
   getArticle(id: String): Article
   listArticles(limit: Int): [ Article ]
   searchArticles(word: String): [ Article ]
-  searchArticlesEs(word: String): [ ArticleEs ]
 }
 type Mutation {
   updateFiction(input: FictionInput): Fiction
@@ -89,6 +102,7 @@ type Mutation {
   batchDeleteFictions(ids: [String]): [ RequestedId ]
   batchPutFictions(fictions: [FictionInput]): [ Fiction ]
   putEvent(message: String): Event
+  updateBlogLank(input: LankInput): BlogArticle
 }
 type Subscription {
   eventHappened: Event

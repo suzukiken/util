@@ -15,11 +15,16 @@ export class UtilApiStack extends cdk.Stack {
     const cognito_userpool_id = cdk.Fn.importValue(this.node.tryGetContext('cognito_userpool_id_exportname'))
     
     const ELASTICSEARCH_INDEX = "product-index";
-    const ELASTICSEARCH_ARTICLE_INDEX = "article-index";
+    const ELASTICSEARCH_BLOG_INDEX = "blog";
+    const ELASTICSEARCH_DOC_TYPE = "doctype";
 
     const es_endpoint = this.node.tryGetContext('elasticsearch_endpoint')
     const es_domain_arn = this.node.tryGetContext('elasticsearch_domainarn')
     const es_domain = es.Domain.fromDomainEndpoint(this, "EsDomain", es_endpoint)
+    
+    const schema = new appsync.Schema({
+        filePath: "graphql/schema.graphql",
+      })
     
     const api = new appsync.GraphqlApi(this, "api", {
       name: basename + "-api",
@@ -31,9 +36,7 @@ export class UtilApiStack extends cdk.Stack {
           authorizationType: appsync.AuthorizationType.IAM,
         },
       },
-      schema: new appsync.Schema({
-        filePath: "graphql/schema.graphql",
-      }),
+      schema: schema
     })
     
     const table = dynamodb.Table.fromTableName(this, "Table", tablename)
@@ -277,7 +280,7 @@ export class UtilApiStack extends cdk.Stack {
       },
       serviceRoleArn: appsync_es_role.roleArn,
     });
-
+    
     const es_search_resolver = new appsync.CfnResolver(this, "EsResolver", {
       apiId: api.apiId,
       typeName: "Query",
@@ -364,40 +367,83 @@ export class UtilApiStack extends cdk.Stack {
       ]`,
     });
     
-    const es_search_article_resolver = new appsync.CfnResolver(this, "ArticleEsResolver", {
+    const es_search_blog_resolver = new appsync.CfnResolver(this, "BlogResolver", {
       apiId: api.apiId,
       typeName: "Query",
-      fieldName: "searchArticlesEs",
+      fieldName: "searchBlogs",
       dataSourceName: es_datasource.name,
       requestMappingTemplate: `{
         "version":"2017-02-28",
         "operation":"GET",
-        "path":"/${ELASTICSEARCH_ARTICLE_INDEX}/_search",
-        "params":{
+        "path":"/${ELASTICSEARCH_BLOG_INDEX}/_search",
+        "params": {
           "body": {
-            "from": 0,
-            "size": 200,
             "query": {
-              "match_phrase": {
-                "content": "$\{context.args.word\}"
+              "multi_match" : {
+                "query": "$\{context.args.word\}",
+                "fuzziness": 2,
+                "operator": "and",
+                "fields": [ "title^10", "category^10", "tags^10", "content" ] 
+              }
+            },
+            "sort": {
+              "lank": {
+                "order": "desc"
+              }
+            },
+            "highlight": {
+              "fields": {
+                "title": {},
+                "tags": {},
+                "category": {},
+                "content": {}
               }
             }
           }
         }
       }`,
-      responseMappingTemplate: `[
+      responseMappingTemplate: `
+        #set($items = [])
         #foreach($entry in $context.result.hits.hits)
-          ## $velocityCount starts at 1 and increments with the #foreach loop **
-          #if( $velocityCount > 1 ) , #end
-          $util.toJson($entry.get("_source"))
+          #set($item = $entry.get("_source"))
+          $util.qr($item.put("id", $entry.get("_id")))
+          $util.qr($item.put("highlight", $entry.get("highlight")))
+          $util.qr($items.add($item))
         #end
-      ]`,
+        $util.toJson($items)
+      `,
+    })
+    
+    const es_update_blog_lank_resolver = new appsync.CfnResolver(this, "UpdateBlogLankResolver", {
+      apiId: api.apiId,
+      typeName: "Mutation",
+      fieldName: "updateBlogLank",
+      dataSourceName: es_datasource.name,
+      requestMappingTemplate: `{
+        "version":"2017-02-28",
+        "operation":"POST",
+        "path":"/${ELASTICSEARCH_BLOG_INDEX}/${ELASTICSEARCH_DOC_TYPE}/$\{context.args.input.id\}/_update",
+        "params": {
+          "body": {
+            "doc":{
+              "lank": $\{context.args.input.lank\}
+            }
+          }
+        }
+      }`,
+      responseMappingTemplate: `
+        #set($item = $context.result.get("_source"))
+        $util.qr($item.put("id", $context.result.get("_id")))
+        $util.toJson($item)
+      `,
     })
 
     // これが無いとNotFoundのエラーが出る
     es_search_resolver.addDependsOn(es_datasource);
     es_search_phrase_resolver.addDependsOn(es_datasource);
     es_all_resolver.addDependsOn(es_datasource);
+    es_search_blog_resolver.addDependsOn(es_datasource);
+    es_update_blog_lank_resolver.addDependsOn(es_datasource);
     
     // Output
     
