@@ -11,20 +11,20 @@ dirs = os.listdir( path )
 
 tiexp = 'title = "(.+?)"'
 tgexp = 'tags = \[(.+?)\]'
-dtexp = 'date = "(.+?)"'
+dtexp = 'date = "(.+?)'
 coexp = '\n[+]{3}\n(.*)'
 
 # put articles to algolia
 
-config = Config(retries={'max_attempts': 10, 'mode': 'standard'})
-resource = boto3.resource('dynamodb', config=config)
-table = resource.Table(os.environ.get('TABLENAME'))
+config = Config(retries={"max_attempts": 10, "mode": "standard"})
+resource = boto3.resource("dynamodb", config=config)
+table = resource.Table(os.environ.get("TABLENAME"))
 
 articles = []
 
 for filename in dirs:
     fpt = os.path.join(path, filename)
-    fop = open(fpt, 'r')
+    fop = open(fpt, "r")
     fco = fop.read()
     
     mat = re.search(tiexp, fco)
@@ -34,7 +34,7 @@ for filename in dirs:
     mat = re.search(tgexp, fco)
     if mat:
         found = mat.group(1)
-        tags = [stg.replace('"', '').strip() for stg in found.split(',')]
+        tags = [stg.replace('"', '').strip() for stg in found.split(",")]
         
     mat = re.search(dtexp, fco)
     if mat:
@@ -46,22 +46,22 @@ for filename in dirs:
         fco = mat.group(1)
     
     articles.append({
-        'filename': filename,
-        'title': title,
-        'tags': tags,
-        'date': dte,
-        'content': fco,
+        "filename": filename,
+        "title": title,
+        "tags": tags,
+        "date": dte,
+        "content": fco,
     })
     
     item = {
-        'id': 'blog/{}'.format(filename),
-        'title': title,
-        'tags': tags,
-        'date': dte.isoformat(),
-        'content': fco,
+        "id": "blog/{}".format(filename),
+        "title": title,
+        "tags": tags,
+        "date": dte.isoformat(),
+        "content": fco,
     }
     
     response = table.put_item(
         Item=item,
-        ReturnValues='NONE',
-        ReturnConsumedCapacity='TOTAL')
+        ReturnValues="NONE",
+        ReturnConsumedCapacity="TOTAL")

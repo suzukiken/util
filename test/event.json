@@ -1,1 +1,10 @@
-{}
+{
+    "Records": [{
+        "eventSource": "aws:s3",
+        "s3": {
+            "bucket": {
+                "name": "utilstragestack-bucket83908e77-13omwmxml2nqy"
+            }
+        }
+    }]
+}

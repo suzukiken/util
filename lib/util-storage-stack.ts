@@ -1,5 +1,8 @@
 import * as cdk from '@aws-cdk/core';
 import * as s3 from "@aws-cdk/aws-s3";
+import * as lambda from "@aws-cdk/aws-lambda";
+import { PythonFunction } from '@aws-cdk/aws-lambda-python';
+import { S3EventSource } from '@aws-cdk/aws-lambda-event-sources';
 
 export class UtilStrageStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
@@ -31,6 +34,28 @@ export class UtilStrageStack extends cdk.Stack {
         },
       ],
     })
+    
+    const trigger_function = new PythonFunction(this, "Trigger", {
+      entry: "lambda/s3-blog-trigger",
+      index: "main.py",
+      handler: "lambda_handler",
+      runtime: lambda.Runtime.PYTHON_3_8,
+      environment: {
+        BUCKET_NAME: bucket.bucketName
+      }
+    })
+    
+    trigger_function.addEventSource(new S3EventSource(bucket, {
+      events: [ 
+        s3.EventType.OBJECT_CREATED,
+        s3.EventType.OBJECT_REMOVED
+      ],
+      filters: [{ 
+        suffix: '.md'
+      }]
+    }))
+    
+    bucket.grantReadWrite(trigger_function)
     
     new cdk.CfnOutput(this, 'BucketName', { 
       exportName: this.node.tryGetContext('blogarticle_s3bucketname_exportname'), 

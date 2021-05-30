@@ -6,19 +6,19 @@ import boto3
 import json
 from pprint import pprint
 
-region = 'ap-northeast-1' 
-service = 'es'
+region = "ap-northeast-1" 
+service = "es"
 credentials = boto3.Session().get_credentials()
 awsauth = AWS4Auth(credentials.access_key, credentials.secret_key, region, service, session_token=credentials.token)
 
-ENDPOINT = os.environ.get('ES_ENDPOINT')
-INDEX = 'article-index'
-TYPE = 'doc'
+ENDPOINT = os.environ.get("ES_ENDPOINT")
+INDEX = "article-index"
+TYPE = "doc"
 
-HOST = ENDPOINT.replace('https://', '')
+HOST = ENDPOINT.replace("https://", "")
 
 es = Elasticsearch(
-    hosts=[{'host': HOST, 'port': 443}],
+    hosts=[{"host": HOST, "port": 443}],
     http_auth=awsauth,
     use_ssl=True,
     verify_certs=True,
@@ -149,5 +149,5 @@ res = es.search(
 
 #pprint(res)
 
-for hit in res['hits']['hits']:
-    pprint('{} {}'.format(hit["_source"]['title'], hit["_id"]))
+for hit in res["hits"]["hits"]:
+    pprint("{} {}".format(hit["_source"]["title"], hit["_id"]))
