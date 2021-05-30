@@ -27,7 +27,8 @@ export class UtilUiDeployStack extends cdk.Stack {
     const COGNITO_USERPOOL_URL = 'https://' + subdomain + '.' + domain // + '/'
     const APPSYNC_GRAPHQL_URL = cdk.Fn.importValue(this.node.tryGetContext('appsyncapiurl_exportname'))
     const DISTRIBUTION_ID = cdk.Fn.importValue(this.node.tryGetContext('distributionid_exportname'))
-
+    const BLOGARTICLE_BUCKETNAME = cdk.Fn.importValue(this.node.tryGetContext('blogarticle_s3bucketname_exportname'))
+    
     const codestararn = secretsmanager.Secret.fromSecretNameV2(this, 'secret', smname).secretValue.toString()
     
     // bucket
@@ -46,6 +47,7 @@ export class UtilUiDeployStack extends cdk.Stack {
       COGNITO_USERPOOL_SIGNIN_URL: { value: COGNITO_USERPOOL_URL },
       COGNITO_USERPOOL_SIGNOUT_URL: { value: COGNITO_USERPOOL_URL },
       APPSYNC_GRAPHQL_URL: { value: APPSYNC_GRAPHQL_URL },
+      S3_BUCKETNAME: { value: BLOGARTICLE_BUCKETNAME }
     }
     
     const pipeline_project = new codebuild.PipelineProject(this, 'pipeline_project', {

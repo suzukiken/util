@@ -50,6 +50,10 @@ input LankInput {
   id: String
   lank: Int
 }
+input WordInput {
+  word: String
+  fuzziness: Int
+}
 type RequestedId {
   id: String
 }
@@ -91,7 +95,7 @@ type Query {
   searchProduct(title: String!): [ Product ]
   searchProductPhrase(title: String!): [ Product ]
   listProducts: [ Product ]
-  searchBlogs(word: String): [ BlogArticle ]
+  searchBlogs(input: WordInput): [ BlogArticle ]
   getArticle(id: String): Article
   listArticles(limit: Int): [ Article ]
   searchArticles(word: String): [ Article ]

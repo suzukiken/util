@@ -5,6 +5,7 @@ import * as lambda from '@aws-cdk/aws-lambda';
 import { PythonFunction } from '@aws-cdk/aws-lambda-python';
 import * as es from "@aws-cdk/aws-elasticsearch";
 import * as iam from "@aws-cdk/aws-iam";
+import * as s3 from "@aws-cdk/aws-s3";
 
 export class UtilApiStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
@@ -380,8 +381,8 @@ export class UtilApiStack extends cdk.Stack {
           "body": {
             "query": {
               "multi_match" : {
-                "query": "$\{context.args.word\}",
-                "fuzziness": 2,
+                "query": "$\{context.args.input.word\}",
+                "fuzziness": $\{context.args.input.fuzziness\},
                 "operator": "and",
                 "fields": [ "title^10", "category^10", "tags^10", "content" ] 
               }
