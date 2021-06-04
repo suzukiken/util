@@ -87,6 +87,11 @@ type BlogArticle {
   lank: Int
   highlight: BlogArticleHighlight
 }
+type MailInfo {
+  key: String
+  modified: String
+  size: Int
+}
 type Query {
   get(id: String): String
   listCrossStackReferences: [ CloudFormationExport ]
@@ -99,6 +104,9 @@ type Query {
   getArticle(id: String): Article
   listArticles(limit: Int): [ Article ]
   searchArticles(word: String): [ Article ]
+  listMails: [ MailInfo ]
+  getMail(id: String): String
+  getParams(content: String): String
 }
 type Mutation {
   updateFiction(input: FictionInput): Fiction

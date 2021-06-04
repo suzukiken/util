@@ -14,6 +14,7 @@ export class UtilApiStack extends cdk.Stack {
     const basename = this.node.tryGetContext('basename')
     const tablename = cdk.Fn.importValue(this.node.tryGetContext('tablename_exportname'))
     const cognito_userpool_id = cdk.Fn.importValue(this.node.tryGetContext('cognito_userpool_id_exportname'))
+    const mail_s3bucketname = this.node.tryGetContext('mail_s3bucketname')
     
     const ELASTICSEARCH_INDEX = "product-index";
     const ELASTICSEARCH_BLOG_INDEX = "blog";
@@ -22,6 +23,8 @@ export class UtilApiStack extends cdk.Stack {
     const es_endpoint = this.node.tryGetContext('elasticsearch_endpoint')
     const es_domain_arn = this.node.tryGetContext('elasticsearch_domainarn')
     const es_domain = es.Domain.fromDomainEndpoint(this, "EsDomain", es_endpoint)
+    
+    const mail_bucket = s3.Bucket.fromBucketName(this, "MailBucket", mail_s3bucketname)
     
     const schema = new appsync.Schema({
         filePath: "graphql/schema.graphql",
@@ -235,6 +238,62 @@ export class UtilApiStack extends cdk.Stack {
     lambda_datasource.createResolver({
       typeName: "Query",
       fieldName: "parseJwt",
+      requestMappingTemplate: appsync.MappingTemplate.lambdaRequest(),
+      responseMappingTemplate: appsync.MappingTemplate.lambdaResult(),
+    })
+    
+    const mail_list_function = new PythonFunction(this, "MailList", {
+      entry: "lambda/mail-list",
+      index: "main.py",
+      handler: "lambda_handler",
+      runtime: lambda.Runtime.PYTHON_3_8,
+      environment: {
+        BUCKET_NAME: mail_bucket.bucketName
+      }
+    })
+    
+    const mail_decode_function = new PythonFunction(this, "MailDecode", {
+      entry: "lambda/mail-decode",
+      index: "main.py",
+      handler: "lambda_handler",
+      runtime: lambda.Runtime.PYTHON_3_8,
+      environment: {
+        BUCKET_NAME: mail_bucket.bucketName
+      }
+    })
+    
+    mail_bucket.grantRead(mail_list_function)
+    mail_bucket.grantRead(mail_decode_function)
+    
+    const mail_list_lambda_datasource = api.addLambdaDataSource('MailListLambda', mail_list_function)
+    const mail_decode_lambda_datasource = api.addLambdaDataSource('MailDecodeLambda', mail_decode_function)
+    
+    mail_list_lambda_datasource.createResolver({
+      typeName: "Query",
+      fieldName: "listMails",
+      requestMappingTemplate: appsync.MappingTemplate.lambdaRequest(),
+      responseMappingTemplate: appsync.MappingTemplate.lambdaResult(),
+    })
+    
+    mail_decode_lambda_datasource.createResolver({
+      typeName: "Query",
+      fieldName: "getMail",
+      requestMappingTemplate: appsync.MappingTemplate.lambdaRequest(),
+      responseMappingTemplate: appsync.MappingTemplate.lambdaResult(),
+    })
+    
+    const getparams_function = new PythonFunction(this, "GetParams", {
+      entry: "lambda/get-params",
+      index: "main.py",
+      handler: "lambda_handler",
+      runtime: lambda.Runtime.PYTHON_3_8,
+    })
+    
+    const getparams_lambda_datasource = api.addLambdaDataSource('GetParamsLambda', getparams_function)
+    
+    getparams_lambda_datasource.createResolver({
+      typeName: "Query",
+      fieldName: "getParams",
       requestMappingTemplate: appsync.MappingTemplate.lambdaRequest(),
       responseMappingTemplate: appsync.MappingTemplate.lambdaResult(),
     })
