@@ -282,11 +282,55 @@ export class UtilApiStack extends cdk.Stack {
       responseMappingTemplate: appsync.MappingTemplate.lambdaResult(),
     })
     
+    // Role for Lambda to get params from ssm and secret manager
+
+    const ssm_policy = new iam.Policy(this, "SSMPolicy", {
+      statements: [
+        new iam.PolicyStatement({
+          effect: iam.Effect.ALLOW,
+          resources: ["*"],
+          actions: ["ssm:GetParameters"]
+        })
+      ],
+    })
+    
+    const sm_policy = new iam.Policy(this, "SMPolicy", {
+      statements: [
+        new iam.PolicyStatement({
+          effect: iam.Effect.ALLOW,
+          resources: ["*"],
+          actions: ["secretsmanager:GetSecretValue"]
+        })
+      ],
+    })
+    
+    const cfn_policy = new iam.Policy(this, "CfnPolicy", {
+      statements: [
+        new iam.PolicyStatement({
+          effect: iam.Effect.ALLOW,
+          resources: ["*"],
+          actions: ["cloudformation:ListExports"]
+        })
+      ],
+    })
+    
+    const getparams_role = new iam.Role(this, "GetParamsLambdaRole", {
+      assumedBy: new iam.ServicePrincipal("lambda.amazonaws.com"),
+      managedPolicies: [
+        iam.ManagedPolicy.fromAwsManagedPolicyName("service-role/AWSLambdaBasicExecutionRole")
+      ]
+    })
+    
+    getparams_role.attachInlinePolicy(ssm_policy)
+    getparams_role.attachInlinePolicy(sm_policy)
+    getparams_role.attachInlinePolicy(cfn_policy)
+
     const getparams_function = new PythonFunction(this, "GetParams", {
       entry: "lambda/get-params",
       index: "main.py",
       handler: "lambda_handler",
       runtime: lambda.Runtime.PYTHON_3_8,
+      role: getparams_role
     })
     
     const getparams_lambda_datasource = api.addLambdaDataSource('GetParamsLambda', getparams_function)
