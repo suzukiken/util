@@ -1,0 +1,5 @@
+{
+    "arguments": {
+        "content": "cfn::v-util-blogarticle-s3-bucketname-1\ncfn::v-util-blogarticle-s3-bucketname-2\nA=cfn::v-util-blogarticle-s3-bucketname-2"
+    }
+}

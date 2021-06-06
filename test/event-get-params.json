@@ -1,5 +1,5 @@
 {
     "arguments": {
-        "content": "BUCKET_NAME: ssm::/auth1/cognito/idpool/id\nBUCKET_NAME2: ssm:us-east-1:lambdaatedge-domain-name\nTABLE_NAME: cfn::fgmtbe-ses-receive-functionarn\nTABLE_NAME2:cloudformation:us-east-1:table-name\nPASSWORD: sm::slack-app-telldone\nPASSWORD2:sm::slack-app-telldone\nPASSWORD2=secretsmanager:us-east-1:slack-app-telldone\nPASSWORD2=sm::slack-app-telldone:SLACK_TOKEN"
+        "content": "BUCKET_NAME: ssm::/auth1/cognito/idpool/id\nBUCKET_NAME2: ssm:us-east-1:lambdaatedge-domain-name\nTABLE_NAME: cfn::fgmtbe-ses-receive-functionarn\ncfn::v-util-blogarticle-s3-bucketname-1\nTABLE_NAME2:cloudformation:us-east-1:table-name\nPASSWORD: sm::slack-app-telldone\nPASSWORD2:sm::slack-app-telldone\nPASSWORD2=secretsmanager:us-east-1:slack-app-telldone\nPASSWORD2=sm::slack-app-telldone:SLACK_TOKEN"
     }
 }

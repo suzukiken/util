@@ -17,20 +17,20 @@ PASSWORD2=sm::slack-app-telldone:SLACK_TOKEN
 
 services = {
     'ssm': {
-        'regexps': ['[^a-z](ssm:[a-zA-Z0-9-]*:[a-zA-Z0-9-_/]+)'],
+        'regexps': ['(^|[^a-z])(ssm:[a-zA-Z0-9-]*:[a-zA-Z0-9-_/]+)'],
         'description': 'Systems Manager Parameter Store'
     },
     'cloudformation': {
         'regexps': [
-            '[^a-z](cfn:[a-zA-Z0-9-]*:[a-zA-Z0-9-_]+)', 
-            '[^a-z](cloudformation:[a-zA-Z0-9-]*:[a-zA-Z0-9-_]+)'
+            '(^|[^a-z])(cfn:[a-zA-Z0-9-]*:[a-zA-Z0-9-_]+)', 
+            '(^|[^a-z])(cloudformation:[a-zA-Z0-9-]*:[a-zA-Z0-9-_]+)'
         ],
         'description': 'CloudFormation Outputs Export'
     },
     'secretsmanager': {
         'regexps': [
-            '[^a-z](sm:[a-zA-Z0-9-]*:[a-zA-Z0-9-_/]+:[a-zA-Z0-9-_]+)', 
-            '[^a-z](secretsmanager:[a-zA-Z0-9-]*:[a-zA-Z0-9-_/]+:[a-zA-Z0-9-_/]+)'
+            '(^|[^a-z])(sm:[a-zA-Z0-9-]*:[a-zA-Z0-9-_/]+:[a-zA-Z0-9-_]+)', 
+            '(^|[^a-z])(secretsmanager:[a-zA-Z0-9-]*:[a-zA-Z0-9-_/]+:[a-zA-Z0-9-_/]+)'
         ],
         'description': 'Secrets Manager Secrets'
     },
@@ -50,7 +50,7 @@ def lambda_handler(event, context):
                 if not key in founds:
                     founds[key] = []
             for matchpart in matchparts:
-                founds[key].append(matchpart)
+                founds[key].append(matchpart[1])
     
     print(founds)
     

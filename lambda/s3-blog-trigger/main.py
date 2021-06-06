@@ -88,6 +88,7 @@ def lambda_handler(event, context):
             'tags': article['tags'],
             'filename': article['filename']
         })
+    
         
     put_response = client.put_object(
         Bucket=BUCKET_NAME,
