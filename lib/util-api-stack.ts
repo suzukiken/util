@@ -6,6 +6,7 @@ import { PythonFunction } from '@aws-cdk/aws-lambda-python';
 import * as es from "@aws-cdk/aws-elasticsearch";
 import * as iam from "@aws-cdk/aws-iam";
 import * as s3 from "@aws-cdk/aws-s3";
+import * as cognito from "@aws-cdk/aws-cognito";
 
 export class UtilApiStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
@@ -25,6 +26,8 @@ export class UtilApiStack extends cdk.Stack {
     const es_domain = es.Domain.fromDomainEndpoint(this, "EsDomain", es_endpoint)
     
     const mail_bucket = s3.Bucket.fromBucketName(this, "MailBucket", mail_s3bucketname)
+    
+    const userpool = cognito.UserPool.fromUserPoolId(this, "UserPool", cognito_userpool_id)
     
     const schema = new appsync.Schema({
         filePath: "graphql/schema.graphql",
@@ -338,6 +341,48 @@ export class UtilApiStack extends cdk.Stack {
     getparams_lambda_datasource.createResolver({
       typeName: "Query",
       fieldName: "getParams",
+      requestMappingTemplate: appsync.MappingTemplate.lambdaRequest(),
+      responseMappingTemplate: appsync.MappingTemplate.lambdaResult(),
+    })
+    
+    const deactivate_policy = new iam.Policy(this, "DeactivatePolicy", {
+      statements: [
+        new iam.PolicyStatement({
+          effect: iam.Effect.ALLOW,
+          resources: [ userpool.userPoolArn ],
+          actions: [
+            "cognito-idp:AdminUserGlobalSignOut",
+            "cognito-idp:ListUsers"
+          ]
+        })
+      ],
+    })
+    
+    const deactivate_role = new iam.Role(this, "DeactivateLambdaRole", {
+      assumedBy: new iam.ServicePrincipal("lambda.amazonaws.com"),
+      managedPolicies: [
+        iam.ManagedPolicy.fromAwsManagedPolicyName("service-role/AWSLambdaBasicExecutionRole")
+      ]
+    })
+    
+    deactivate_role.attachInlinePolicy(deactivate_policy)
+    
+    const deactivate_function = new PythonFunction(this, "DeactivateRefreshToken", {
+      entry: "lambda/deactivate-refresh-token",
+      index: "main.py",
+      handler: "lambda_handler",
+      runtime: lambda.Runtime.PYTHON_3_8,
+      role: deactivate_role,
+      environment: {
+        USERPOOL_ID: cognito_userpool_id
+      }
+    })
+    
+    const deactivates_lambda_datasource = api.addLambdaDataSource('DeactivateRefreshTokenLambda', deactivate_function)
+    
+    deactivates_lambda_datasource.createResolver({
+      typeName: "Mutation",
+      fieldName: "deactivateRefreshToken",
       requestMappingTemplate: appsync.MappingTemplate.lambdaRequest(),
       responseMappingTemplate: appsync.MappingTemplate.lambdaResult(),
     })

@@ -115,6 +115,7 @@ type Mutation {
   batchPutFictions(fictions: [FictionInput]): [ Fiction ]
   putEvent(message: String): Event
   updateBlogLank(input: LankInput): BlogArticle
+  deactivateRefreshToken(email: String): String
 }
 type Subscription {
   eventHappened: Event

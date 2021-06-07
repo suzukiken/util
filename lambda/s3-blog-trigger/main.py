@@ -13,7 +13,8 @@ tgexp = 'tags = \[(.+?)\]'
 dtexp = 'date = "(.+?)"'
 coexp = '\n[+]{3}\n(.*)'
 
-SUMMARY_KEY = 'summery.json'
+SUMMARY_KEY = 'summary-title.json'
+TAG_KEY = 'summary-tag.json'
 
 def lambda_handler(event, context):
     print(event)
@@ -42,6 +43,9 @@ def lambda_handler(event, context):
     for content in list_response['Contents']:
         
         filename = content['Key']
+        
+        if not filename.endswith('.md'):
+            continue
         
         get_response = client.get_object(
             Bucket=BUCKET_NAME,
@@ -97,3 +101,23 @@ def lambda_handler(event, context):
     )
     
     print(put_response)
+    
+    category = {}
+    
+    for article in articles:
+        tag = article['tags'][0]
+        if not tag in category:
+            category[tag] = []
+        category[tag].append({
+            'title': article['title'],
+            'date': article['date'].isoformat(),
+            'tags': article['tags'],
+            'filename': article['filename']
+        })
+    
+    put_response = client.put_object(
+        Bucket=BUCKET_NAME,
+        Key=TAG_KEY,
+        Body=json.dumps(category, ensure_ascii=False)
+    )
+    
