@@ -4,3 +4,4 @@ elasticsearch
 faker
 faker_vehicle
 boto3
+ShopifyAPI
