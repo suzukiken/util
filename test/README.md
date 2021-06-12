@@ -1,8 +1,8 @@
 ```
-python -m venv env
-source env/bin/activate
+python -m venv test/env
+source test/env/bin/activate
 pip install -r requirements.txt
-source setenv.sh
+source test/setenv.sh
 python put_item.py
 python put_fictions.py
 python put_products.py

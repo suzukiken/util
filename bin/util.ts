@@ -4,6 +4,7 @@ import * as cdk from '@aws-cdk/core';
 import { UtilDbStack } from '../lib/util-db-stack';
 import { UtilStrageStack } from '../lib/util-storage-stack';
 import { UtilApiStack } from '../lib/util-api-stack';
+import { UtilApiCallStack } from '../lib/util-api-call-stack';
 import { UtilPermitStack } from '../lib/util-permit-stack';
 import { UtilUiDistroStack } from '../lib/util-ui-distro-stack';
 import { UtilUiDeployStack } from '../lib/util-ui-deploy-stack';
@@ -17,6 +18,9 @@ const utilStrageStack = new UtilStrageStack(app, 'UtilStrageStack', {
   env: { account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION }
 });
 const utilApiStack = new UtilApiStack(app, 'UtilApiStack', {
+  env: { account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION }
+});
+const utilApiCallStack = new UtilApiCallStack(app, 'UtilApiCallStack', {
   env: { account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION }
 });
 const utilPermitStack = new UtilPermitStack(app, 'UtilPermitStack', {
@@ -38,4 +42,5 @@ utilUiDeployStack.addDependency(utilStrageStack)
 utilPermitStack.addDependency(utilApiStack)
 utilPermitStack.addDependency(utilStrageStack)
 utilApiStack.addDependency(utilDbStack)
+utilApiCallStack.addDependency(utilApiStack)
 utilCrossstackinfoUpdaterStack.addDependency(utilDbStack)

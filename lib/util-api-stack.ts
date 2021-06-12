@@ -42,6 +42,11 @@ export class UtilApiStack extends cdk.Stack {
         defaultAuthorization: {
           authorizationType: appsync.AuthorizationType.IAM,
         },
+        /*
+        additionalAuthorizationModes: [{
+          authorizationType: appsync.AuthorizationType.API_KEY
+        }]
+        */
       },
       schema: schema
     })
