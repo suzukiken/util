@@ -17,13 +17,13 @@ export class UtilApiStack extends cdk.Stack {
     const cognito_userpool_id = cdk.Fn.importValue(this.node.tryGetContext('cognito_userpool_id_exportname'))
     const mail_s3bucketname = this.node.tryGetContext('mail_s3bucketname')
     
-    const ELASTICSEARCH_INDEX = "product-index";
-    const ELASTICSEARCH_BLOG_INDEX = "blog";
-    const ELASTICSEARCH_DOC_TYPE = "doctype";
+    //const ELASTICSEARCH_INDEX = "product-index";
+    //const ELASTICSEARCH_BLOG_INDEX = "blog";
+    //const ELASTICSEARCH_DOC_TYPE = "doctype";
 
-    const es_endpoint = this.node.tryGetContext('elasticsearch_endpoint')
-    const es_domain_arn = this.node.tryGetContext('elasticsearch_domainarn')
-    const es_domain = es.Domain.fromDomainEndpoint(this, "EsDomain", es_endpoint)
+    //const es_endpoint = this.node.tryGetContext('elasticsearch_endpoint')
+    //const es_domain_arn = this.node.tryGetContext('elasticsearch_domainarn')
+    //const es_domain = es.Domain.fromDomainEndpoint(this, "EsDomain", es_endpoint)
     
     const mail_bucket = s3.Bucket.fromBucketName(this, "MailBucket", mail_s3bucketname)
     
@@ -392,6 +392,8 @@ export class UtilApiStack extends cdk.Stack {
       responseMappingTemplate: appsync.MappingTemplate.lambdaResult(),
     })
     
+    /*
+    
     // ES
 
     // Role for appsync that query Elasticsearch
@@ -598,6 +600,8 @@ export class UtilApiStack extends cdk.Stack {
     es_all_resolver.addDependsOn(es_datasource);
     es_search_blog_resolver.addDependsOn(es_datasource);
     es_update_blog_lank_resolver.addDependsOn(es_datasource);
+    
+    */
     
     // Output
     
