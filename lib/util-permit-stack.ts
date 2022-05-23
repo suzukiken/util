@@ -16,6 +16,7 @@ export class UtilPermitStack extends cdk.Stack {
     const blogarticle_bucket = s3.Bucket.fromBucketName(this, 'Bucket', blogarticle_bucketname)
     
     auth_iamrole.attachInlinePolicy(new iam.Policy(this, 'policy', {
+      policyName: id + 'Auth',
       statements: [
         new iam.PolicyStatement({
           effect: iam.Effect.ALLOW,
